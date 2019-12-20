@@ -16,7 +16,12 @@ var dialog_title_default= krms_config.DialogDefaultTitle;
 var search_address;
 var ajax_request;
 var cart=[];
+var itemAarray=[];
+var cartAux = [];
+var dataItem=[];
+var band;
 var networkState;
+
 
 var easy_category_list='';
 var map;
@@ -847,7 +852,7 @@ document.addEventListener("pageinit", function(e) {
 		  
 		  break;
 
-		
+		/***AQUI ES DONDE SE MANDA A CARGAR CADA PAGINA EN LA APLICACION****/
 
 		case "page-profile":
 		  callAjax('getProfile',
@@ -3066,7 +3071,12 @@ function callAjax(action,params)
 			    toastMsg( getTrans("Item added to cart",'item_added_to_cart') );
 			    break;
 			    
-			   
+			    case "Update_item":
+			    	//alert("hola estoy en el caso update item");
+			    break;
+			    case "CancelOrderCart":
+			    	alert("hola orden cancelado.....!!!");
+			    break;
 			    case "getCustomFields":
 			      var custom_fields='';
 			      $.each( data.details, function( key, val ) {     			      	  
@@ -3870,6 +3880,11 @@ function callAjax(action,params)
 			    
 			    /*silent*/
 			    case "addToCart":
+			    case "Update_item":
+			    case "CancelOrderCart":
+			    	
+			    	//toastMsg(data.msg);
+			    break;
 			    case "getCustomFields":
 			    break;
 			    			    
@@ -4307,123 +4322,259 @@ function displayItemByCategory(data , index)
 	var actions = '';
 	
 	var html='';
+
+	//dataItem = data;
+
 	html+='<ons-list class="top10">';	 
 	//html+='<ons-list class="restaurant-list">';
 	$.each( data.item, function( key, val ) { 		 
 
-		html+= '<ons-list-item class="list-item-container stic-list-item-2">';
-		
-		 if (data.disabled_ordering==2){
-		 //html+='<ons-list-item modifier="tappable" class="list-item-container" onclick="itemNotAvailable(2)" >';		
-		   actions = "itemNotAvailable(2)";
-		 } else {
-			 if (val.not_available==2){
-			     //html+='<ons-list-item modifier="tappable" class="list-item-container" onclick="itemNotAvailable(1)" >';	
-			     actions = "itemNotAvailable(1)";
+		if (val.item_cant == -1)
+		{
+			band=0;
+			html+= '<ons-list-item class="list-item-container stic-list-item-2">';
+			
+			 if (data.disabled_ordering==2){
+			 //html+='<ons-list-item modifier="tappable" class="list-item-container" onclick="itemNotAvailable(2)" >';		
+			   actions = "itemNotAvailable(2)";
 			 } else {
-			 	  var single_add_item=getStorage("single_add_item");
-			 	  dump("=>"+single_add_item);
-			 	  if (val.single_item==2 && single_add_item==2){
-			 	  	  item_auto_price="0|";
-			 	  	  item_auto_discount="0";
-			 	  	  if ( val.prices.length>0){
-			 	  	  	  $.each( val.prices, function( key_price, price ) { 
-			 	  	  	  	   if (!empty(price.price_discount_pretty)){
-			 	  	  	  	   	   //item_auto_price = "'"+price.price+"|'";
-			 	  	  	  	   	   item_auto_price = price.price+"|";
-			 	  	  	  	   	   item_auto_discount=parseInt(price.price)-parseInt(price.price_discount)
-			 	  	  	  	   } else {
-			 	  	  	  	   	   //item_auto_price=  "'"+price.price+"|'";
-			 	  	  	  	   	   item_auto_price =  price.price+"|";
-			 	  	  	  	   }
-			 	  	  	  });
-			 	  	  }
-			 	  	  			 	  	  			 	  	 
-/*html+='<ons-list-item modifier="tappable" class="list-item-container"';
-html+='onclick="autoAddToCart('+ "'"+val.item_id+"'," +  "'"+item_auto_price+"'," + "'"+item_auto_discount+"'"  +');"  >';*/
-			 	  	   
-                     actions = '"autoAddToCart('+ "'"+val.item_id+"'," +  "'"+item_auto_price+"'," + "'"+item_auto_discount+"'," + "'"+data.cat_id+"'"  +');"';
-			 	  } else {
-			          /*html+='<ons-list-item modifier="tappable" class="list-item-container" onclick="loadItemDetails('+val.item_id+','+data.merchant_info.merchant_id+','+data.category_info.cat_id+');"  >';*/			         
-			          
-actions='"loadItemDetails('+ "'"+val.item_id+"'," +  "'"+data.merchant_id+"'," + "'"+data.cat_id+"'"  +');"';
-			 	  }
+				 if (val.not_available==2){
+				     //html+='<ons-list-item modifier="tappable" class="list-item-container" onclick="itemNotAvailable(1)" >';	
+				     actions = "itemNotAvailable(1)";
+				 } else {
+				 	  var single_add_item=getStorage("single_add_item");
+				 	  dump("=>"+single_add_item);
+				 	  if (val.single_item==2 && single_add_item==2){
+				 	  	  item_auto_price="0|";
+				 	  	  item_auto_discount="0";
+				 	  	  if ( val.prices.length>0){
+				 	  	  	  $.each( val.prices, function( key_price, price ) { 
+				 	  	  	  	   if (!empty(price.price_discount_pretty)){
+				 	  	  	  	   	   //item_auto_price = "'"+price.price+"|'";
+				 	  	  	  	   	   item_auto_price = price.price+"|";
+				 	  	  	  	   	   item_auto_discount=parseInt(price.price)-parseInt(price.price_discount)
+				 	  	  	  	   } else {
+				 	  	  	  	   	   //item_auto_price=  "'"+price.price+"|'";
+				 	  	  	  	   	   item_auto_price =  price.price+"|";
+				 	  	  	  	   }
+				 	  	  	  });
+				 	  	  }
+				 	  	  			 	  	  			 	  	 
+	/*html+='<ons-list-item modifier="tappable" class="list-item-container"';
+	html+='onclick="autoAddToCart('+ "'"+val.item_id+"'," +  "'"+item_auto_price+"'," + "'"+item_auto_discount+"'"  +');"  >';*/
+				 	  	   
+	                     actions = '"autoAddToCart('+ "'"+val.item_id+"'," +  "'"+item_auto_price+"'," + "'"+item_auto_discount+"'," + "'"+data.cat_id+"'"  +');"';
+				 	  } else {
+				          /*html+='<ons-list-item modifier="tappable" class="list-item-container" onclick="loadItemDetails('+val.item_id+','+data.merchant_info.merchant_id+','+data.category_info.cat_id+');"  >';*/			         
+				          
+						actions='"loadItemDetails('+ "'"+val.item_id+"'," +  "'"+data.merchant_id+"'," + "'"+data.cat_id+"'"  +');"';
+				 	  }
+				 }
 			 }
-		 }
-		 
-         html+='<ons-row class="row" onclick='+actions+' >';
-         
-         /*DISH ICON*/
-         var dish_icon_html = '';
-     	 if(!empty(val.icon_dish)){         	 	
-     	    $.each( val.icon_dish, function( dish_id, dish_icon_url ) {
-     	    	dish_icon_html += '<img src="'+ dish_icon_url +'" />';
-     	    });
-     	 }
-         
-         if ( data.mobile_menu==1){
-         	
-         	html+='<ons-col class="col-image" width="65%">';
-                html+='<p class="restauran-title concat-text stic-restaurant">'+val.item_name+'</p>';
-                html+='<p class="small-font-dim small nomargin stic-cuisine">'+val.item_description+'</p>';  
-                
-                if(!empty(dish_icon_html)){
-                   html+= '<div class="dish_icon_wrap">'+dish_icon_html+'</div>';   
-                }
-                 
-             html+='</ons-col>';
-         	
-             html+='<ons-col class="col-image text-right" width="35%">';
-              if ( val.prices.length>0){
-	                $.each( val.prices, function( key_price, price ) { 
-	                   if (!empty(price.price_discount_pretty)){
-	                   	   html+='<p class="p-small">'+price.size+' <price class="discount">'+price.price_pretty+'</price>'; 
-	                   	   html+='<price>'+price.price_discount_pretty+'</price>';
-	                   	   html+='</p>';
-	                   } else {
-	                   	   html+='<p class="p-small">'+price.size+' <price>'+price.price_pretty+'</price></p>';
-	                   }                   
-	                });
-                }
-             html+='</ons-col>';
-             
-         } else {
-         	
-                html+='<div class="logo-wrap2" style="padding: 0 10px 10px 0px">';
-                  html+='<div class="img_loaded" >';
-                  html+='<img src="'+val.photo+'" />';
-                  html+='</div>';
-                html+='</div>';
-             
-                html+='<ons-col class="col-description" >';
-                html+='<p class="restauran-title concat-text stic-restaurant">'+val.item_name+'</p>';
-                html+='<p class="small-font-dim small stic-cuisine">'+val.item_description+'</p>';   
-                                     
-                if ( val.prices.length>0){
-	                $.each( val.prices, function( key_price, price ) { 
-	                   if (!empty(price.price_discount_pretty)){
-	                   	   html+='<p class="p-small stic-price">'+price.size+' <price class="discount stic-price">'+price.price_pretty+'</price>'; 
-	                   	   html+='<price>'+price.price_discount_pretty+'</price>';
-	                   	   html+='</p>';
-	                   } else {
-	                   	   html+='<p class="p-small">'+price.size+' <price>'+price.price_pretty+'</price></p>';
-	                   }                   
-	                });
-                }
-                                
-                if (val.not_available==2){
-                	html+='<p class="stic-notavailable" >no disponible</p>';
-                }
-                
-                if(!empty(dish_icon_html)){
-                   html+= '<div class="dish_icon_wrap">'+dish_icon_html+'</div>';   
-                }
-                
-             html+='</ons-col>';
-         }                 
-           
-         html+='</ons-row>';
-        html+='</ons-list-item>';
+			 
+	         html+='<ons-row class="row" onclick='+actions+' >';
+	         
+	         /*DISH ICON*/
+	         var dish_icon_html = '';
+	     	 if(!empty(val.icon_dish)){         	 	
+	     	    $.each( val.icon_dish, function( dish_id, dish_icon_url ) {
+	     	    	dish_icon_html += '<img src="'+ dish_icon_url +'" />';
+	     	    });
+	     	 }
+	         
+	         if ( data.mobile_menu==1){
+	         	
+	         	html+='<ons-col class="col-image" width="65%">';
+	                html+='<p class="restauran-title concat-text stic-restaurant">'+val.item_name+'</p>';
+	                html+='<p class="small-font-dim small nomargin stic-cuisine">'+val.item_description+'</p>';  
+	                
+	                if(!empty(dish_icon_html)){
+	                   html+= '<div class="dish_icon_wrap">'+dish_icon_html+'</div>';   
+	                }
+	                 
+	             html+='</ons-col>';
+	         	
+	             html+='<ons-col class="col-image text-right" width="35%">';
+	              if ( val.prices.length>0){
+		                $.each( val.prices, function( key_price, price ) { 
+		                   if (!empty(price.price_discount_pretty)){
+		                   	   html+='<p class="p-small">'+price.size+' <price class="discount">'+price.price_pretty+'</price>'; 
+		                   	   html+='<price>'+price.price_discount_pretty+'</price>';
+		                   	   html+='</p>';
+		                   } else {
+		                   	   html+='<p class="p-small">'+price.size+' <price>'+price.price_pretty+'</price></p>';
+		                   }                   
+		                });
+	                }
+	             html+='</ons-col>';
+	             
+	         } else {
+	         	
+	                html+='<div class="logo-wrap2" style="padding: 0 10px 10px 0px">';
+	                  html+='<div class="img_loaded" >';
+	                  html+='<img src="'+val.photo+'" />';
+	                  html+='</div>';
+	                html+='</div>';
+	             
+	                html+='<ons-col class="col-description" >';
+	                html+='<p class="restauran-title concat-text stic-restaurant">'+val.item_name+'</p>';
+	                html+='<p class="small-font-dim small stic-cuisine">'+val.item_description+'</p>';   
+	                                     
+	                if ( val.prices.length>0){
+		                $.each( val.prices, function( key_price, price ) { 
+		                   if (!empty(price.price_discount_pretty)){
+		                   	   html+='<p class="p-small stic-price">'+price.size+' <price class="discount stic-price">'+price.price_pretty+'</price>'; 
+		                   	   html+='<price>'+price.price_discount_pretty+'</price>';
+		                   	   html+='</p>';
+		                   } else {
+		                   	   html+='<p class="p-small">'+price.size+' <price>'+price.price_pretty+'</price></p>';
+		                   }                   
+		                });
+	                }
+	                                
+	                if (val.not_available==2){
+	                	html+='<p class="stic-notavailable" >no disponible</p>';
+	                }
+	                
+	                if(!empty(dish_icon_html)){
+	                   html+= '<div class="dish_icon_wrap">'+dish_icon_html+'</div>';   
+	                }
+	                
+	             html+='</ons-col>';
+	         }                 
+	           
+	         html+='</ons-row>';
+	        html+='</ons-list-item>';
+		}else{
+			band=1;
+			if (val.item_cant > 0)
+			{
+				html+= '<ons-list-item class="list-item-container stic-list-item-2">';
+			
+			 if (data.disabled_ordering==2){
+			 //html+='<ons-list-item modifier="tappable" class="list-item-container" onclick="itemNotAvailable(2)" >';		
+			   actions = "itemNotAvailable(2)";
+			 } else {
+				 if (val.not_available==2){
+				     //html+='<ons-list-item modifier="tappable" class="list-item-container" onclick="itemNotAvailable(1)" >';	
+				     actions = "itemNotAvailable(1)";
+				 } else {
+				 	  var single_add_item=getStorage("single_add_item");
+				 	  dump("=>"+single_add_item);
+				 	  if (val.single_item==2 && single_add_item==2){
+				 	  	  item_auto_price="0|";
+				 	  	  item_auto_discount="0";
+				 	  	  if ( val.prices.length>0){
+				 	  	  	  $.each( val.prices, function( key_price, price ) { 
+				 	  	  	  	   if (!empty(price.price_discount_pretty)){
+				 	  	  	  	   	   //item_auto_price = "'"+price.price+"|'";
+				 	  	  	  	   	   item_auto_price = price.price+"|";
+				 	  	  	  	   	   item_auto_discount=parseInt(price.price)-parseInt(price.price_discount)
+				 	  	  	  	   } else {
+				 	  	  	  	   	   //item_auto_price=  "'"+price.price+"|'";
+				 	  	  	  	   	   item_auto_price =  price.price+"|";
+				 	  	  	  	   }
+				 	  	  	  });
+				 	  	  }
+				 	  	  			 	  	  			 	  	 
+	/*html+='<ons-list-item modifier="tappable" class="list-item-container"';
+	html+='onclick="autoAddToCart('+ "'"+val.item_id+"'," +  "'"+item_auto_price+"'," + "'"+item_auto_discount+"'"  +');"  >';*/
+				 	  	/*dataItem[length]={
+				 	  		'item_id'=>val.item_id,
+				 	  		'item_cant'=>val.item_cant
+				 	  	}   */
+	                    actions = '"autoAddToCart2('+ "'"+val.item_id+"'," +  "'"+item_auto_price+"'," + "'"+item_auto_discount+"'," + "'"+data.cat_id+"'," +"'"+val.item_cant+"'" +');"';
+				 	  } else {
+				          /*html+='<ons-list-item modifier="tappable" class="list-item-container" onclick="loadItemDetails('+val.item_id+','+data.merchant_info.merchant_id+','+data.category_info.cat_id+');"  >';*/			         
+				          
+						actions='"loadItemDetails('+ "'"+val.item_id+"'," +  "'"+data.merchant_id+"'," + "'"+data.cat_id+"'"  +');"';
+				 	  }
+				 }
+			 }
+			 
+	         html+='<ons-row class="row" onclick='+actions+' >';
+	         
+	         /*DISH ICON*/
+	         var dish_icon_html = '';
+	     	 if(!empty(val.icon_dish)){         	 	
+	     	    $.each( val.icon_dish, function( dish_id, dish_icon_url ) {
+	     	    	dish_icon_html += '<img src="'+ dish_icon_url +'" />';
+	     	    });
+	     	 }
+	         
+	         if ( data.mobile_menu==1){
+	         	
+	         	html+='<ons-col class="col-image" width="65%">';
+	                html+='<p class="restauran-title concat-text stic-restaurant">'+val.item_name+'</p>';
+	                html+='<p class="small-font-dim small nomargin stic-cuisine">'+val.item_description+'</p>';  
+	                
+	                if(!empty(dish_icon_html)){
+	                   html+= '<div class="dish_icon_wrap">'+dish_icon_html+'</div>';   
+	                }
+	                 
+	             html+='</ons-col>';
+	         	
+	             html+='<ons-col class="col-image text-right" width="35%">';
+	              if ( val.prices.length>0){
+		                $.each( val.prices, function( key_price, price ) { 
+		                   if (!empty(price.price_discount_pretty)){
+		                   	   html+='<p class="p-small">'+price.size+' <price class="discount">'+price.price_pretty+'</price>'; 
+		                   	   html+='<price>'+price.price_discount_pretty+'</price>';
+		                   	   html+='</p>';
+		                   } else {
+		                   	   html+='<p class="p-small">'+price.size+' <price>'+price.price_pretty+'</price></p>';
+		                   }                   
+		                });
+	                }
+	             html+='</ons-col>';
+	             
+	         } else {
+	         	
+	                html+='<div class="logo-wrap2" style="padding: 0 10px 10px 0px">';
+	                  html+='<div class="img_loaded" >';
+	                  html+='<img src="'+val.photo+'" />';
+	                  html+='</div>';
+	                html+='</div>';
+	             
+	                html+='<ons-col class="col-description" >';
+	                html+='<p class="restauran-title concat-text stic-restaurant">'+val.item_name+'</p>';
+	                html+='<p class="small-font-dim small stic-cuisine">'+val.item_description+'</p>';   
+	                                     
+	                if ( val.prices.length>0){
+		                $.each( val.prices, function( key_price, price ) { 
+		                   if (!empty(price.price_discount_pretty)){
+		                   	   html+='<p class="p-small stic-price">'+price.size+' <price class="discount stic-price">'+price.price_pretty+'</price>'; 
+		                   	   html+='<price>'+price.price_discount_pretty+'</price>';
+		                   	   html+='</p>';
+		                   } else {
+		                   	   html+='<p class="p-small">'+price.size+' <price>'+price.price_pretty+'</price></p>';
+		                   }                   
+		                });
+	                }
+	                
+	                html+='<p class="p-small stic-price">Disponibles: '+' <price>'+val.item_cant+'</price>'+'</p>';
+
+	                if (val.not_available==2){
+	                	html+='<p class="stic-notavailable" >no disponible</p>';
+	                }
+	                
+	                if(!empty(dish_icon_html)){
+	                   html+= '<div class="dish_icon_wrap">'+dish_icon_html+'</div>';   
+	                }
+	                
+	             html+='</ons-col>';
+	         }                 
+	           
+	         	html+='</ons-row>';
+	        	html+='</ons-list-item>';
+			}else{
+				html+= '<ons-list-item id="item2" class="list-item-container stic-list-item-2">';
+			}
+
+		}
+
+
+	
     });			
     html+='</ons-list>';    
     
@@ -7937,7 +8088,7 @@ function autoAddToCart(item_id,price,discount,category_id)
 	  'category_id':category_id  //cart category
 	};
 	dump(cart);
-	
+
 	var cart_value={		  
 	  "item_id":item_id,
 	  "qty":1,
@@ -7956,6 +8107,97 @@ function autoAddToCart(item_id,price,discount,category_id)
 	} else {		
 	    //sNavigator.popPage({cancelIfRunning: true}); //back button
 	    toastMsg(  getTrans("Item added to cart",'item_added_to_cart') );
+	}
+	showCartNosOrder();
+}
+
+
+function autoAddToCart2(item_id,price,discount,category_id, item_cant)
+{
+		
+    if ( $("#close_store").val()==2 || $("#merchant_open").val()==1 ){
+		onsenAlert( getTrans("This Restaurant Is Closed Now.  Please Check The Opening Times",'restaurant_close') );
+		return;
+	}
+	
+	dump(item_id);
+	dump(price);
+	dump(item_cant);
+
+	idCompare = item_id;
+	item_cant = item_cant - 1;
+	
+	
+	console.log(item_cant);
+	/*if (item_cant <= minimo)
+	{
+		onsenAlert( getTrans("Scarce item, Please Reload Inventory",'item_scarce') );
+		return;
+	}*/
+
+	
+    cart[cart.length]={		  
+	  "item_id":item_id,
+	  "qty":1,
+	  "price":price,
+	  "sub_item":[],
+	  "cooking_ref":[],
+	  "ingredients":[],
+	  'order_notes': '',
+	  'discount':discount,
+	  'category_id':category_id  //cart category
+	};
+	dump(cart);
+
+	var cart_value={		  
+	  "item_id":item_id,
+	  "qty":1,
+	  "price":price,
+	  "sub_item":[],
+	  "cooking_ref":[],
+	  "ingredients":[],
+	  'order_notes': '',
+	  'discount':discount,
+	  'category_id':category_id  //cart category
+	};
+	
+
+
+	ArrayItem={
+		"item_id":item_id,
+		"item_cant":item_cant
+	};
+
+cartAux[cartAux.length]=
+	{
+		"item_id":item_id,
+		"item_cant":item_cant,
+		"qty":1
+	}
+	dump(cartAux);
+	var cantidad=0;
+/*
+	if (itemCompare == item_id)
+	{
+		cantidad = cantidad + 1;
+
+	}else{
+
+	}*/
+
+	
+/*alert(ArrayItem.item_id);*/
+console.log(JSON.stringify(ArrayItem));	
+	if(saveCartToDb()){
+		callAjax("addToCart", "cart="+ JSON.stringify(cart_value) + "&device_id=" + getStorage("device_id") );
+		callAjax("Update_item", "item="+ JSON.stringify(ArrayItem));		
+		//callAjax("updateItem_Cant", "item=" + JSON.stringify(ArrayItem));
+	} else {		
+	    //sNavigator.popPage({cancelIfRunning: true}); //back button
+	    callAjax("Update_item", "item="+ JSON.stringify(ArrayItem));
+	   // callAjax("updateItem", "item_cant=" + item_cant + "&item_id=" + getStorage("item_id"));
+	    toastMsg(  getTrans("Item added to cart",'item_added_to_cart') );
+
 	}
 	showCartNosOrder();
 }
@@ -10583,6 +10825,9 @@ function clearCart()
 	       if (saveCartToDb()){
 	       	  callAjax("clearMyCart", "&device_id="+ encodeURIComponent(getStorage("device_id")) );
 	       } else {
+
+	       	alert("hola aqui es donde reingreso las cantidades de los productos");
+	       	/*** AQUI DEBO AGREGAR UNA FUNCION QUE ME SUME LAS CANTIDADES DEL CARRO DE COMPRAS.***/
 	       	   //showCart();
 		       cart=[];		       
 		       // sNavigator.popPage({cancelIfRunning: true}); //back button
@@ -11040,9 +11285,130 @@ function cancelCartOrder()
 		  animation: 'default', // or 'none'
 		  primaryButtonIndex: 1,
 		  cancelable: true,
+
 		  callback: function(index) {
-		  		cart = [];
-		  		showCartNosOrder();	  	       
+		  		
+		  		dump(band);
+		  		var cantidad=0;
+		  		var id;
+		  		var i,j;
+		  		var cont;
+		  		var cantidad2;
+		  		var aux=[];
+		  		cont = 0;
+		  		if (band!=0)
+		  		{
+		  			if (cart.length > 1)
+		  			{
+		  				/** ORDENO EL CARRO DE COMPRAS AUXILIAR **/
+		  				for(i = 0; i < cartAux.length; i++)
+		  				{
+		  					id = cartAux[i].item_id;
+		  					
+		  					for(j = i; j < cartAux.length; j++)
+		  					{
+		  						
+		  						if(cartAux[i].item_id <= cartAux[j].item_id)
+		  						{
+		  							aux = cartAux[i];
+		  							cartAux[i]=cartAux[j];
+		  							cartAux[j]=aux;
+		  								  							
+		  						}
+
+		  					}
+
+		  				}
+
+		  				//dump(cartAux);
+		  				id = cartAux[0].item_id;
+		  				cantidad = 1;
+
+		  				/**RECORRO EL CARRO DE COMPRAS ORDENADOS Y SUMO LAS CANTIDADES POR ID DE PRODUCTO **/
+		  				for(i = 1; i < cartAux.length; i++)
+		  				{
+		  					bandera = 0;
+		  					if (id == cartAux[i].item_id) 
+		  					{
+		  						cantidad = cantidad + 1;
+		  						
+		  						if (i == (cartAux.length - 1))
+		  						{
+		  							bandera = 1;
+		  						}
+
+		  					}else{
+		  						
+		  						itemAarray[itemAarray.length]={
+		  							"item_id":id,
+		  							"item_cant":cantidad
+		  						};
+		  						
+		  						id = cartAux[i].item_id;
+		  						cantidad = 1;
+
+		  						if (i == (cartAux.length - 1))
+		  						{
+		  							itemAarray[itemAarray.length]={
+			  							"item_id":id,
+			  							"item_cant":cantidad
+		  							};	
+		  						}
+		  					}
+
+		  				}
+		  				/** Guardando en caso de que se compre solo un tipo de producto **/
+	  					if (bandera)
+	  					{
+	  						bandera = 0;
+
+	  						//alert("item_id="+id);
+	  						itemAarray[itemAarray.length]={
+	  							"item_id":id,
+	  							"item_cant":cantidad
+	  						};
+	  					}else
+		  				
+
+		  				dump(itemAarray);
+		  				
+				  		/// aqui llamo al ajax para que actualize las cantidades de los productos ///
+
+				  		//dump(JSON.stringify(itemAarray));
+				  		callAjax("CancelOrderCart", "itemCancel="+ JSON.stringify(itemAarray));
+				  		
+				  		itemAarray=[];
+				  		cart = [];
+						cartAux=[];
+						
+		  			}else{
+
+		  				
+		  				dump(cart);
+		  				cart.forEach(function(val, idex){
+		  					itemAarray[itemAarray.length]={
+				  				"item_id":val.item_id,
+				  				"item_cant":val.qty
+				  			};
+				  		});
+				  		
+		  				/// aqui llamo al ajax para que actualize las cantidades de los productos ///
+		  				
+		  				callAjax("CancelOrderCart", "itemCancel="+ JSON.stringify(itemAarray));
+				  		
+
+				  		itemAarray=[];
+				  		cart = [];
+						cartAux=[];
+		  			}
+		  		}else{
+		  			
+		  			itemAarray=[];
+			  		cart = [];
+					cartAux=[];
+		  		}
+		  		
+		  	   showCartNosOrder();	  	       
 		  	   if (index==0){	  	   	      	   	  
 					sNavigator.popPage({cancelIfRunning: true}); 
 		  	   }
@@ -11844,6 +12210,7 @@ requestCancelOrder = function(){
 	  cancelable: true,
 	  callback: function(index) {
 	      if(index<=0){
+	      	//alert("hola aqui es donde reingreso las cantidades de los productos");
 	      	 callAjax("requestCancelOrder", "order_id=" +  order_id );	
 	      }
 	  }
@@ -13060,3 +13427,27 @@ function alertColitaxi(){
 function getRandomNumberInt(){
 	return Math.floor(Math.random() * (201 - 1)) + 1;
 }
+
+
+/*** SECCION MODIFICADO POR HENRY FONTALBA ***/
+
+function restaurar()
+{
+	if (val.item_cant != -1)
+	{
+
+	}else{
+
+	}
+}
+
+function clearCartItem(cart, item)
+{
+
+}
+
+function clearCarting(cart)
+{
+
+}
+
