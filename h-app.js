@@ -16,14 +16,7 @@ var dialog_title_default= krms_config.DialogDefaultTitle;
 var search_address;
 var ajax_request;
 var cart=[];
-var itemAarray=[];
-var cartAux = [];
-var dataItem=[];
-var band;
-var band2 = 0;
 var networkState;
-var catID;
-var merID;
 
 var easy_category_list='';
 var map;
@@ -55,6 +48,10 @@ var device_platform = 'android';
 
 var send_post_ajax;
 var analytics;
+
+var img_1 = '';
+var img_2 = '';
+var app = {};
 
 document.addEventListener("deviceready", onDeviceReady, false);
 
@@ -249,167 +246,10 @@ function createElement(elementId,elementvalue)
    ons.compile(content);
 }
 
-
-/*** Seccion Modificada por Henry Fontalba ***/
-
 function searchMerchant()
 {
-
-	if (band2 != 0)
-	{
-		if ( cart.length>0 )
-		{		
-			ons.notification.confirm({
-			  message: getTrans('Cancel Current Order','cancel_order') ,	  
-			  title: dialog_title_default ,
-			  buttonLabels: [ getTrans('Yes','yes') ,  getTrans('No','no') ],
-			  animation: 'default', // or 'none'
-			  primaryButtonIndex: 1,
-			  cancelable: true,
-
-			  callback: function(index) {
-			  		
-			  		dump(band);
-			  		var cantidad=0;
-			  		var id;
-			  		var i,j;
-			  		var aux=[];
-			  		
-			  		if (band!=0)
-			  		{
-			  			if (cart.length > 1)
-			  			{
-			  				/** ORDENO EL CARRO DE COMPRAS AUXILIAR **/
-			  				for(i = 0; i < cartAux.length; i++)
-			  				{
-			  					id = cartAux[i].item_id;
-			  					
-			  					for(j = i; j < cartAux.length; j++)
-			  					{
-			  						
-			  						if(cartAux[i].item_id <= cartAux[j].item_id)
-			  						{
-			  							aux = cartAux[i];
-			  							cartAux[i]=cartAux[j];
-			  							cartAux[j]=aux;
-			  								  							
-			  						}
-
-			  					}
-
-			  				}
-
-			  				//dump(cartAux);
-			  				id = cartAux[0].item_id;
-			  				cantidad = 1;
-
-			  				/**RECORRO EL CARRO DE COMPRAS ORDENADOS Y SUMO LAS CANTIDADES POR ID DE PRODUCTO **/
-			  				for(i = 1; i < cartAux.length; i++)
-			  				{
-			  					bandera = 0;
-			  					if (id == cartAux[i].item_id) 
-			  					{
-			  						cantidad = cantidad + 1;
-			  						
-			  						if (i == (cartAux.length - 1))
-			  						{
-			  							bandera = 1;
-			  						}
-
-			  					}else{
-			  						
-			  						itemAarray[itemAarray.length]={
-			  							"item_id":id,
-			  							"item_cant":cantidad
-			  						};
-			  						
-			  						id = cartAux[i].item_id;
-			  						cantidad = 1;
-
-			  						if (i == (cartAux.length - 1))
-			  						{
-			  							itemAarray[itemAarray.length]={
-				  							"item_id":id,
-				  							"item_cant":cantidad
-			  							};	
-			  						}
-			  					}
-
-			  				}
-			  				/** Guardando en caso de que se compre solo un tipo de producto **/
-		  					if (bandera)
-		  					{
-		  						bandera = 0;
-
-		  						//alert("item_id="+id);
-		  						itemAarray[itemAarray.length]={
-		  							"item_id":id,
-		  							"item_cant":cantidad
-		  						};
-		  					}
-			  				
-
-			  				dump(itemAarray);
-			  				
-					  		/// aqui llamo al ajax para que actualize las cantidades de los productos ///
-
-					  		//dump(JSON.stringify(itemAarray));
-					  		callAjax("CancelOrderCart", "itemCancel="+ JSON.stringify(itemAarray));
-					  		
-					  		/*itemAarray=[];
-					  		cart = [];
-							cartAux=[];*/
-							
-			  			}else{
-
-			  				
-			  				dump(cart);
-			  				cart.forEach(function(val, idex){
-			  					itemAarray[itemAarray.length]={
-					  				"item_id":val.item_id,
-					  				"item_cant":val.qty
-					  			};
-					  		});
-					  		
-			  				/// aqui llamo al ajax para que actualize las cantidades de los productos ///
-			  				
-			  				callAjax("CancelOrderCart", "itemCancel="+ JSON.stringify(itemAarray));
-					  		
-
-					  		/*itemAarray=[];
-					  		cart = [];
-							cartAux=[];*/
-			  			}
-
-			  			itemAarray=[];
-				  		cart = [];
-						cartAux=[];
-						
-			  		}else{
-			  			
-			  			itemAarray=[];
-				  		cart = [];
-						cartAux=[];
-			  		}
-			  		
-			  	   showCartNosOrder();	  	       
-			  	   if (index==0){	  	   	      	   	  
-						sNavigator.popPage({cancelIfRunning: true}); 
-			  	   }
-			  }
-			});
-		} else {
-	  	  sNavigator.popPage({cancelIfRunning: true}); 
-	  }
-	  band2=0;
-	}
-
 	clearAllStorage();
-	//alert("band2 = "+band2);
-	
-	/// cancelando productos que esten en el carrito una vez le den click al boton de inicio ///
-
-	//cart=[];
+	cart=[];
 	showCartNosOrder();
 
 	if(isLogin()){
@@ -467,6 +307,7 @@ function searchMerchant()
 		  	   	  default:
 		  	   	  break;
 		  	   }
+
 		  }
 		  
 		  if(s!=""){	  
@@ -492,25 +333,16 @@ function searchMerchant()
 						default:
 						break;
 					}
-					callAjax("initSearch", sparams );	
+					callAjax("initSearch", sparams );
 				} else {
 				    callAjax("initSearch","address="+ getStorage("search_address") + "&search_mode=" + search_mode );		
 				}
 		  } else{
 		  	 onsenAlert(   getTrans('Address is required','address_is_required')  );
 		  }
-
-		  //cancelarPedido();
-		/*if (cart.length >= 1)
-		{
-			alert("llamando a cancelar el pedido....");
-			cancelarPedido();
-			dump("pedido Cancelado...");
-		}*/
 	}else{
   		goToLogin();
   	}
-  //	cart=[];
 }
 
 /*ons.ready(function() {
@@ -521,7 +353,7 @@ function searchMerchant()
 
 document.addEventListener("pageinit", function(e) {
 	dump("pageinit");	
-	
+
 	dump("pagname => "+e.target.id);
 			
 	switch (e.target.id)
@@ -831,12 +663,15 @@ document.addEventListener("pageinit", function(e) {
 		break;
 		
 		case "page-home":
-		    
+				
 		    setNotificationDisplay();
 		    translatePage();
+		    
 		    $('.img-banner').attr('src','https://www.asiderapido.com/images/banner/banner-1.png?i='+getRandomNumberInt());
-		
+			
 		    search_mode = getSearchMode();
+			    
+
 		    if ( search_mode=="postcode"){		
 		    	
 		    	search_type = getSearchType();
@@ -854,10 +689,12 @@ document.addEventListener("pageinit", function(e) {
 				if ( !empty(global_city_id)){
 					$(".city_id").val( global_city_id );
 					$(".location_city").html( global_city_name );
+					
 				}
 				if ( !empty(global_area_id)){
 					$(".area_id").val( global_area_id );
 					$(".location_area").html( global_area_name );
+
 				}	
 				
 				switch (search_type)
@@ -866,6 +703,7 @@ document.addEventListener("pageinit", function(e) {
 					case 1:
 					$(".location_state").hide();
 					$(".location_postal").hide();
+
 					break;
 					
 					case "2":
@@ -889,11 +727,13 @@ document.addEventListener("pageinit", function(e) {
 					$(".location_postal").show();
 					break;
 				}
-							
+
 		    } else {			
 		    	var enabled_advance_search = getStorage("enabled_advance_search");
+		    	
 		    	if(enabled_advance_search=="yes"){
 		    		
+
 		    		theme_address = getStorage("theme_search_merchant_address");
 		    		theme_name = getStorage("theme_search_merchant_name");
 		    		theme_street_name = getStorage("theme_search_street_name");
@@ -942,8 +782,13 @@ document.addEventListener("pageinit", function(e) {
 							search_address=getStorage("geo_address_result_formatted_address");
 							setTimeout('$("#s").val(search_address)', 100);
 						}						
-					} else {												
-						setTimeout('$("#s").val(search_address)', 100);
+					} else {
+						/*AQUI SE ENCUENTRA LA CONDICION VALIDACION Y EL USER ESTA LOGUEADO*/	
+						if (isLogin()) {
+							setServicios();
+						}else{	
+							setTimeout('$("#s").val(search_address)', 100);
+						}
 					}										
 					$("#s").attr("placeholder",  getTrans('Street Address,City,State','home_search_placeholder') );				
 					
@@ -952,6 +797,8 @@ document.addEventListener("pageinit", function(e) {
 		    	}								
 		    }
 		    
+		    
+
 		    var current= new Date();
 			var day_night=current.getHours();
 			if (day_night>=6 && day_night<12){
@@ -963,6 +810,7 @@ document.addEventListener("pageinit", function(e) {
 			}
 
 		    setTrackView('homepage');
+		
 			
 		break;
 		
@@ -1020,7 +868,7 @@ document.addEventListener("pageinit", function(e) {
 		  
 		  break;
 
-		/***AQUI ES DONDE SE MANDA A CARGAR CADA PAGINA EN LA APLICACION****/
+		
 
 		case "page-profile":
 		  callAjax('getProfile',
@@ -1937,7 +1785,6 @@ function callAjax(action,params)
 				break;
 				
 				case "getItemDetails":
-				dump(data.details);
 				displayItem(data.details);
 				break;
 				
@@ -3237,16 +3084,10 @@ function callAjax(action,params)
 			    
 			    case "addToCart":
 			    //onsenAlert(  getTrans("Item added to cart",'item_added_to_cart') );
-			    
 			    toastMsg( getTrans("Item added to cart",'item_added_to_cart') );
 			    break;
 			    
-			    case "Update_item":
-			    	//alert("hola estoy en el caso update item");
-			    break;
-			    case "CancelOrderCart":
-			    	dump("Su orden ha sido cancelado.....!!!");
-			    break;
+			   
 			    case "getCustomFields":
 			      var custom_fields='';
 			      $.each( data.details, function( key, val ) {     			      	  
@@ -3668,7 +3509,6 @@ function callAjax(action,params)
 			    break;
 			    
 			    case "clearMyCart":
-			      //alert("hola estoy en el clearMyCart");
 			      cart=[];		       
 		          sNavigator.popPage({cancelIfRunning: true}); //back button
 		          showCartNosOrder();
@@ -4051,8 +3891,6 @@ function callAjax(action,params)
 			    
 			    /*silent*/
 			    case "addToCart":
-			    case "Update_item":
-			    case "CancelOrderCart":
 			    case "getCustomFields":
 			    break;
 			    			    
@@ -4398,8 +4236,7 @@ function menuCategoryResult(data)
 
 function loadmenu(cat_id,mtid)
 {			       
-	catID = cat_id;
-	merID = mtid;
+	
 	/*if ( $("#close_store").val()==2 || $("#merchant_open").val()==1 ){
 		onsenAlert( getTrans("This Restaurant Is Closed Now.  Please Check The Opening Times",'restaurant_close') );
 		return;
@@ -4414,8 +4251,6 @@ function loadmenu(cat_id,mtid)
    };
    sNavigator.pushPage("menuItem.html", options);*/
 	
-	/*alert("category= "+cat_id);
-	alert("merchant= "+mtid);*/
 	removeStorage("item_count");	
 	setStorage("selected_cat_id" , cat_id);
 	callAjax("getItemCount", "cat_id="+cat_id+"&merchant_id="+mtid );
@@ -4493,383 +4328,123 @@ function displayItemByCategory(data , index)
 	var actions = '';
 	
 	var html='';
-
-	//dataItem = data;
-
 	html+='<ons-list class="top10">';	 
 	//html+='<ons-list class="restaurant-list">';
 	$.each( data.item, function( key, val ) { 		 
-		//dump(val.need_inventory);
-		if (val.need_inventory == 1)
-		{
-			band=0;
-			html+= '<ons-list-item class="list-item-container stic-list-item-2">';
-			
-			 if (data.disabled_ordering==2){
-			 //html+='<ons-list-item modifier="tappable" class="list-item-container" onclick="itemNotAvailable(2)" >';		
-			   actions = "itemNotAvailable(2)";
+
+		html+= '<ons-list-item class="list-item-container stic-list-item-2">';
+		
+		 if (data.disabled_ordering==2){
+		 //html+='<ons-list-item modifier="tappable" class="list-item-container" onclick="itemNotAvailable(2)" >';		
+		   actions = "itemNotAvailable(2)";
+		 } else {
+			 if (val.not_available==2){
+			     //html+='<ons-list-item modifier="tappable" class="list-item-container" onclick="itemNotAvailable(1)" >';	
+			     actions = "itemNotAvailable(1)";
 			 } else {
-				 if (val.not_available==2){
-				     //html+='<ons-list-item modifier="tappable" class="list-item-container" onclick="itemNotAvailable(1)" >';	
-				     actions = "itemNotAvailable(1)";
-				 } else {
-				 	  var single_add_item=getStorage("single_add_item");
-				 	 // dump("=>"+single_add_item);
-				 	  if (val.single_item==2 && single_add_item==2){
-				 	  	  item_auto_price="0|";
-				 	  	  item_auto_discount="0";
-				 	  	  item_auto_priceUsd="0|";
-
-				 	  	/***** Precios en Bs.S *******/
-					 		if ( val.prices.length>0){
-						 		$.each( val.prices, function( key_price, price ) { 
-						 	  		if (!empty(price.price_discount_pretty)){
-						 	  	  	  //item_auto_price = "'"+price.price+"|'";
-						 	  	  	   item_auto_price = price.price+"|";
-						 	  	  	   item_auto_discount=parseInt(price.price)-parseInt(price.price_discount)
-						 	  	  	} else {
-						 	  	  	   //item_auto_price=  "'"+price.price+"|'";
-						 	  	  	   item_auto_price =  price.price+"|";
-						 	  	  	}
-						 	  	});
-						 	}
-
-						/***** Precios en USD. *******/
-						 	if (val.prices_usd.length>0)
-						 	{
-						 		$.each(val.prices_usd, function(key_priceUsd, priceUsd)
-						 		{
-						 			if (!empty(priceUsd.price_discount_pretty))
-						 			{
-						 				item_auto_priceUsd = priceUsd.price_usd+"|";
-						 				item_auto_discount = parseInt(priceUsd.price_usd)-parseInt(price_usd.price_discount);
-						 			}else
-						 			{
-						 				item_auto_priceUsd = priceUsd+"|";
-						 			}	
-						 		});
-						 	}
-				 	  	  			 	  	  			 	  	 
-	/*html+='<ons-list-item modifier="tappable" class="list-item-container"';
-	html+='onclick="autoAddToCart('+ "'"+val.item_id+"'," +  "'"+item_auto_price+"'," + "'"+item_auto_discount+"'"  +');"  >';*/
-				 	  	//  band2=1; 
-				 	  	actions = '"autoAddToCart('+ "'"+val.item_id+"'," +  "'"+item_auto_price+"'," + "'"+item_auto_discount+"'," + "'"+data.cat_id+"'," +"'"+item_auto_priceUsd+"'" +');"';
-	                    //actions = '"autoAddToCart('+ "'"+val.item_id+"'," +  "'"+item_auto_price+"'," + "'"+item_auto_discount+"'," + "'"+data.cat_id+"'"  +');"';
-				 	  } else {
-				          /*html+='<ons-list-item modifier="tappable" class="list-item-container" onclick="loadItemDetails('+val.item_id+','+data.merchant_info.merchant_id+','+data.category_info.cat_id+');"  >';*/			         
-				          
-						actions='"loadItemDetails('+ "'"+val.item_id+"'," +  "'"+data.merchant_id+"'," + "'"+data.cat_id+"'"  +');"';
-				 	  }
-				 }
+			 	  var single_add_item=getStorage("single_add_item");
+			 	  dump("=>"+single_add_item);
+			 	  if (val.single_item==2 && single_add_item==2){
+			 	  	  item_auto_price="0|";
+			 	  	  item_auto_discount="0";
+			 	  	  if ( val.prices.length>0){
+			 	  	  	  $.each( val.prices, function( key_price, price ) { 
+			 	  	  	  	   if (!empty(price.price_discount_pretty)){
+			 	  	  	  	   	   //item_auto_price = "'"+price.price+"|'";
+			 	  	  	  	   	   item_auto_price = price.price+"|";
+			 	  	  	  	   	   item_auto_discount=parseInt(price.price)-parseInt(price.price_discount)
+			 	  	  	  	   } else {
+			 	  	  	  	   	   //item_auto_price=  "'"+price.price+"|'";
+			 	  	  	  	   	   item_auto_price =  price.price+"|";
+			 	  	  	  	   }
+			 	  	  	  });
+			 	  	  }
+			 	  	  			 	  	  			 	  	 
+/*html+='<ons-list-item modifier="tappable" class="list-item-container"';
+html+='onclick="autoAddToCart('+ "'"+val.item_id+"'," +  "'"+item_auto_price+"'," + "'"+item_auto_discount+"'"  +');"  >';*/
+			 	  	   
+                     actions = '"autoAddToCart('+ "'"+val.item_id+"'," +  "'"+item_auto_price+"'," + "'"+item_auto_discount+"'," + "'"+data.cat_id+"'"  +');"';
+			 	  } else {
+			          /*html+='<ons-list-item modifier="tappable" class="list-item-container" onclick="loadItemDetails('+val.item_id+','+data.merchant_info.merchant_id+','+data.category_info.cat_id+');"  >';*/			         
+			          
+actions='"loadItemDetails('+ "'"+val.item_id+"'," +  "'"+data.merchant_id+"'," + "'"+data.cat_id+"'"  +');"';
+			 	  }
 			 }
-			 
-	         html+='<ons-row class="row" onclick='+actions+' >';
-	         
-	         /*DISH ICON*/
-	         var dish_icon_html = '';
-	     	 if(!empty(val.icon_dish)){         	 	
-	     	    $.each( val.icon_dish, function( dish_id, dish_icon_url ) {
-	     	    	dish_icon_html += '<img src="'+ dish_icon_url +'" />';
-	     	    });
-	     	 }
-	         
-	         if ( data.mobile_menu==1){
-	         	
-	         	html+='<ons-col class="col-image" width="65%">';
-	                html+='<p class="restauran-title concat-text stic-restaurant">'+val.item_name+'</p>';
-	                html+='<p class="small-font-dim small nomargin stic-cuisine">'+val.item_description+'</p>';  
-	                
-	                if(!empty(dish_icon_html)){
-	                   html+= '<div class="dish_icon_wrap">'+dish_icon_html+'</div>';   
-	                }
-	                 
-	             html+='</ons-col>';
-	         	
-	             html+='<ons-col class="col-image text-right" width="35%">';
-	             /* if ( val.prices.length>0){
-		                $.each( val.prices, function( key_price, price ) { 
-		                   if (!empty(price.price_discount_pretty)){
-		                   	   html+='<p class="p-small">'+price.size+' <price class="discount">'+price.price_pretty+'</price>'; 
-		                   	   html+='<price>'+price.price_discount_pretty+'</price>';
-		                   	   html+='</p>';
-		                   } else {
-		                   	   html+='<p class="p-small">'+price.size+' <price>'+price.price_pretty+'</price></p>';
-		                   }                   
-		                });
-	                }*/
-	            
-	            if ( val.prices.length>0){
-	                var precioBs = val.prices;
-		            var precio_usd = val.prices_usd;
-
-		                	/** hago un ciclo para mostrar los precios tanto en $ como en Bs.S **/
-
-	            	for(var i=0; i < precio_usd.length; i++)
-	            	{
-	            		if (!empty(precioBs[i].price_discount_pretty))
-	            		{
-	            			html+='<p class="p-small stic-price">'+precioBs[i].size+' <price class="discount stic-price">'+precioBs[i].price_pretty+'</price>'+' <price class="discount stic-price">'+precio_usd[i].price_pretty+'</price>'; 
-	                   		html+='<price>'+precioBs[i].price_discount_pretty+'</price>'+' <price>'+precio_usd[i].price_discount_pretty+'</price>';
-	                   		html+='</p>';
-	            		}else
-	            		{
-	            			html+='<p class="p-small">'+precioBs[i].size+' <price>'+precioBs[i].price_pretty+' </price>'+' <p-small> | </p>' + '<price>'+precio_usd[i].formatted_price+'</price></p>';
-	            		}
-	            	}
-	            } 
-	             html+='</ons-col>';
-
-	            
-	             
-	         } else {
-	         		//alert("Semaforo: Amarillo");
-	                html+='<div class="logo-wrap2" style="padding: 0 10px 10px 0px">';
-	                  html+='<div class="img_loaded" >';
-	                  html+='<img src="'+val.photo+'" />';
-	                  html+='</div>';
-	                html+='</div>';
-	             
-	                html+='<ons-col class="col-description" >';
-	                html+='<p class="restauran-title concat-text stic-restaurant">'+val.item_name+'</p>';
-	                html+='<p class="small-font-dim small stic-cuisine">'+val.item_description+'</p>';   
-	                
-	                if ( val.prices.length>0){
-		               var precioBs = val.prices;
-	                	var precio_usd = val.prices_usd;
-
-	                	/** hago un ciclo para mostrar los precios tanto en $ como en Bs.S **/
-
-	                	for(var i=0; i < precio_usd.length; i++)
-	                	{
-	                		if (!empty(precioBs[i].price_discount_pretty))
-	                		{
-	                			html+='<p class="p-small stic-price">'+precioBs[i].size+' <price class="discount stic-price">'+precioBs[i].price_pretty+'</price>'+' <price class="discount stic-price">'+precio_usd[i].price_pretty+'</price>'; 
-		                   		html+='<price>'+precioBs[i].price_discount_pretty+'</price>'+' <price>'+precio_usd[i].price_discount_pretty+'</price>';
-		                   		html+='</p>';
-	                		}else
-	                		{
-	                			html+='<p class="p-small">'+precioBs[i].size+' <price>'+precioBs[i].price_pretty+' </price>'+' <p-small> | </p>' + '<price>'+precio_usd[i].formatted_price+'</price></p>';
-	                		}
-	                	}
-	                }
-
-	               
-	                html+='</ons-col>';
-
-		            
-	                                
-	                if (val.not_available==2){
-	                	html+='<p class="stic-notavailable" >no disponible</p>';
-	                }
-	                
-	                if(!empty(dish_icon_html)){
-	                   html+= '<div class="dish_icon_wrap">'+dish_icon_html+'</div>';   
-	                }
-	                
-	             html+='</ons-col>';
-	         }                 
-	           
-	         html+='</ons-row>';
-	        html+='</ons-list-item>';
-		}else{
-			band=1;
-			if (val.item_cant > 0)
-			{
-				html+= '<ons-list-item class="list-item-container stic-list-item-2">';
-			
-				 if (data.disabled_ordering==2){
-				 //html+='<ons-list-item modifier="tappable" class="list-item-container" onclick="itemNotAvailable(2)" >';		
-				   actions = "itemNotAvailable(2)";
-				} else {
-					if (val.not_available==2)
-					{
-					     //html+='<ons-list-item modifier="tappable" class="list-item-container" onclick="itemNotAvailable(1)" >';	
-					     actions = "itemNotAvailable(1)";
-					}else{
-					 	var single_add_item=getStorage("single_add_item");
-					 	dump("=>"+single_add_item);
-					 	if (val.single_item==2 && single_add_item==2){
-					 		item_auto_price="0|";
-					 		item_auto_discount="0";
-					 		item_auto_priceUsd ="0|";
-
-					 		/***** Precios en Bs.S *******/
-					 		if ( val.prices.length>0){
-						 		$.each( val.prices, function( key_price, price ) { 
-						 	  		if (!empty(price.price_discount_pretty)){
-						 	  	  	  //item_auto_price = "'"+price.price+"|'";
-						 	  	  	   item_auto_price = price.price+"|";
-						 	  	  	   item_auto_discount=parseInt(price.price)-parseInt(price.price_discount)
-						 	  	  	} else {
-						 	  	  	   //item_auto_price=  "'"+price.price+"|'";
-						 	  	  	   item_auto_price =  price.price+"|";
-						 	  	  	}
-						 	  	});
-						 	}
-
-						 	/***** Precios en USD. *******/
-						 	if (val.prices_usd.length>0)
-						 	{
-						 		$.each(val.prices_usd, function(key_priceUsd, priceUsd)
-						 		{
-						 			if (!empty(priceUsd.price_discount_pretty))
-						 			{
-						 				item_auto_priceUsd = priceUsd.price_usd+"|";
-						 				item_auto_discount = parseInt(priceUsd.price_usd)-parseInt(price_usd.price_discount);
-						 			}else
-						 			{
-						 				item_auto_priceUsd = priceUsd+"|";
-						 			}	
-						 		});
-						 	}
-
-					 	  	  			 	  	  			 	  	 
-		/*html+='<ons-list-item modifier="tappable" class="list-item-container"';
-		html+='onclick="autoAddToCart('+ "'"+val.item_id+"'," +  "'"+item_auto_price+"'," + "'"+item_auto_discount+"'"  +');"  >';*/
-					 	  	/*dataItem[length]={
-					 	  		'item_id'=>val.item_id,
-					 	  		'item_cant'=>val.item_cant
-					 	  	}   */
-		                    actions = '"autoAddToCart2('+ "'"+val.item_id+"'," +  "'"+item_auto_price+"'," + "'"+item_auto_discount+"'," + "'"+data.cat_id+"'," +"'"+val.item_cant+"'" +');"';
-					 	}else
-					 	{
-					          /*html+='<ons-list-item modifier="tappable" class="list-item-container" onclick="loadItemDetails('+val.item_id+','+data.merchant_info.merchant_id+','+data.category_info.cat_id+');"  >';*/			         
-					          
-							actions='"loadItemDetails('+ "'"+val.item_id+"'," +  "'"+data.merchant_id+"'," + "'"+data.cat_id+"'"  +');"';
-					 	}
-					}
-			 	}
-			 
-	         html+='<ons-row class="row" onclick='+actions+' >';
-	         
-	         /*DISH ICON*/
-	         var dish_icon_html = '';
-	     	 if(!empty(val.icon_dish)){         	 	
-	     	    $.each( val.icon_dish, function( dish_id, dish_icon_url ) {
-	     	    	dish_icon_html += '<img src="'+ dish_icon_url +'" />';
-	     	    });
-	     	 }
-	         
-	        if ( data.mobile_menu==1){
-	         	
-		        html+='<ons-col class="col-image" width="65%">';
-		        html+='<p class="restauran-title concat-text stic-restaurant">'+val.item_name+'</p>';
-	            html+='<p class="small-font-dim small nomargin stic-cuisine">'+val.item_description+'</p>';  
-		                
-	            if(!empty(dish_icon_html)){
-		            html+= '<div class="dish_icon_wrap">'+dish_icon_html+'</div>';   
-	            }
-		                 
-	            html+='</ons-col>';
-	            html+='<ons-col class="col-image text-right" width="35%">';
-	        
-
-	        	//html+='<p class="p-small">--------- Moneda Nacional -------</p>';
-	            html+='<br>';
-	            if ( val.prices.length>0){
-	                var precioBs = val.prices;
-		            var precio_usd = val.prices_usd;
-
-		                	/** hago un ciclo para mostrar los precios tanto en $ como en Bs.S **/
-
-	            	for(var i=0; i < precio_usd.length; i++)
-	            	{
-	            		if (!empty(precioBs[i].price_discount_pretty))
-	            		{
-	            			html+='<p class="p-small stic-price">'+precioBs[i].size+' <price class="discount stic-price">'+precioBs[i].price_pretty+'</price>'+' <price class="discount stic-price">'+precio_usd[i].price_pretty+'</price>'; 
-	                   		html+='<price>'+precioBs[i].price_discount_pretty+'</price>'+' <price>'+precio_usd[i].price_discount_pretty+'</price>';
-	                   		html+='</p>';
-	            		}else
-	            		{
-	            			html+='<p class="p-small">'+precioBs[i].size+' <price>'+precioBs[i].price_pretty+' </price>'+' <p-small> | </p>' + '<price>'+precio_usd[i].formatted_price+'</price></p>';
-	            		}
-	            	}
-	            }
-	          
-	            html+='</ons-col>';
-	             
-	         } else {
-	         	
-	                html+='<div class="logo-wrap2" style="padding: 0 10px 10px 0px">';
-	                  html+='<div class="img_loaded" >';
-	                  html+='<img src="'+val.photo+'" />';
-	                  html+='</div>';
-	                html+='</div>';
-	             
-	                html+='<ons-col class="col-description" >';
-	                html+='<p class="restauran-title concat-text stic-restaurant">'+val.item_name+'</p>';
-	                html+='<p class="small-font-dim small stic-cuisine">'+val.item_description+'</p>';   
-	                
-	                /// Muestro el Precio en Bs.S ///
-
-	               // html+='<p class="p-small">--------- Moneda Nacional -------</p>';
-	           		html+='<br>';
-		            if ( val.prices.length>0){
-		                var precioBs = val.prices;
-			            var precio_usd = val.prices_usd;
-
-			                	/** hago un ciclo para mostrar los precios tanto en $ como en Bs.S **/
-
-		            	for(var i=0; i < precio_usd.length; i++)
-		            	{
-		            		if (!empty(precioBs[i].price_discount_pretty))
-		            		{
-		            			html+='<p class="p-small stic-price">'+precioBs[i].size+' <price class="discount stic-price">'+precioBs[i].price_pretty+'</price>'+' <price class="discount stic-price">'+precio_usd[i].price_pretty+'</price>'; 
-		                   		html+='<price>'+precioBs[i].price_discount_pretty+'</price>'+' <price>'+precio_usd[i].price_discount_pretty+'</price>';
-		                   		html+='</p>';
-		            		}else
-		            		{
-		            			html+='<p class="p-small">'+precioBs[i].size+' <price>'+precioBs[i].price_pretty+' </price>'+' <p-small> | </p>' + '<price>'+precio_usd[i].formatted_price+'</price></p>';
-		            		}
-		            	}
-		            }
-
-	                /*/// Muestro el Precio en USD. ///
-	               
-	                html+='<br>';
-	               // html+='<p class="p-small">--------- Divisas ---------</p>';
-	                html+='<br>';
-	                if ( val.prices_usd.length>0){
-	                	dump(val.prices_usd);
-	                	$.each( val.prices_usd, function( key_price, priceUsd ) { 
-		                   if (!empty(priceUsd.price_discount_pretty)){
-		                   	   html+='<p class="p-small stic-price">'+priceUsd.size+' <price class="discount stic-price">'+priceUsd.price_pretty+'</price>'; 
-		                   	   html+='<price>'+priceUsd.price_discount_pretty+'</price>';
-		                   	   html+='</p>';
-		                   	   html+='<br>';
-		                   } else {
-		                   	   html+='<p class="p-small">'+ priceUsd.size + ' <price>'+priceUsd.formatted_price+'</price></p>';
-		                   	   html+='<br>';
-		                   }                   
-		                });
-	                }*/
-
-	                //// Muestro la Cantidad de Disponibles ///
-	              //  html+='<p class="p-small">------------ Disponibilidad --------------</p>';
-	                html+='<br>';
-	                html+='<p class="p-small stic-price">Disponibles: '+' <price>'+val.item_cant+'</price>'+'</p>';
-
-	                if (val.not_available==2){
-	                	html+='<p class="stic-notavailable" >no disponible</p>';
-	                }
-	                
-	                if(!empty(dish_icon_html)){
-	                   html+= '<div class="dish_icon_wrap">'+dish_icon_html+'</div>';   
-	                }
-	                
-	             html+='</ons-col>';
-	         }                 
-	           
-	         	html+='</ons-row>';
-	        	html+='</ons-list-item>';
-			}else{
-				html+= '<ons-list-item id="item2" class="list-item-container stic-list-item-2">';
-			}
-
-		}
-
-
-	
+		 }
+		 
+         html+='<ons-row class="row" onclick='+actions+' >';
+         
+         /*DISH ICON*/
+         var dish_icon_html = '';
+     	 if(!empty(val.icon_dish)){         	 	
+     	    $.each( val.icon_dish, function( dish_id, dish_icon_url ) {
+     	    	dish_icon_html += '<img src="'+ dish_icon_url +'" />';
+     	    });
+     	 }
+         
+         if ( data.mobile_menu==1){
+         	
+         	html+='<ons-col class="col-image" width="65%">';
+                html+='<p class="restauran-title concat-text stic-restaurant">'+val.item_name+'</p>';
+                html+='<p class="small-font-dim small nomargin stic-cuisine">'+val.item_description+'</p>';  
+                
+                if(!empty(dish_icon_html)){
+                   html+= '<div class="dish_icon_wrap">'+dish_icon_html+'</div>';   
+                }
+                 
+             html+='</ons-col>';
+         	
+             html+='<ons-col class="col-image text-right" width="35%">';
+              if ( val.prices.length>0){
+	                $.each( val.prices, function( key_price, price ) { 
+	                   if (!empty(price.price_discount_pretty)){
+	                   	   html+='<p class="p-small">'+price.size+' <price class="discount">'+price.price_pretty+'</price>'; 
+	                   	   html+='<price>'+price.price_discount_pretty+'</price>';
+	                   	   html+='</p>';
+	                   } else {
+	                   	   html+='<p class="p-small">'+price.size+' <price>'+price.price_pretty+'</price></p>';
+	                   }                   
+	                });
+                }
+             html+='</ons-col>';
+             
+         } else {
+         	
+                html+='<div class="logo-wrap2" style="padding: 0 10px 10px 0px">';
+                  html+='<div class="img_loaded" >';
+                  html+='<img src="'+val.photo+'" />';
+                  html+='</div>';
+                html+='</div>';
+             
+                html+='<ons-col class="col-description" >';
+                html+='<p class="restauran-title concat-text stic-restaurant">'+val.item_name+'</p>';
+                html+='<p class="small-font-dim small stic-cuisine">'+val.item_description+'</p>';   
+                                     
+                if ( val.prices.length>0){
+	                $.each( val.prices, function( key_price, price ) { 
+	                   if (!empty(price.price_discount_pretty)){
+	                   	   html+='<p class="p-small stic-price">'+price.size+' <price class="discount stic-price">'+price.price_pretty+'</price>'; 
+	                   	   html+='<price>'+price.price_discount_pretty+'</price>';
+	                   	   html+='</p>';
+	                   } else {
+	                   	   html+='<p class="p-small">'+price.size+' <price>'+price.price_pretty+'</price></p>';
+	                   }                   
+	                });
+                }
+                                
+                if (val.not_available==2){
+                	html+='<p class="stic-notavailable" >no disponible</p>';
+                }
+                
+                if(!empty(dish_icon_html)){
+                   html+= '<div class="dish_icon_wrap">'+dish_icon_html+'</div>';   
+                }
+                
+             html+='</ons-col>';
+         }                 
+           
+         html+='</ons-row>';
+        html+='</ons-list-item>';
     });			
     html+='</ons-list>';    
     
@@ -4897,22 +4472,12 @@ function loadItemDetails(item_id,mtid,cat_id)
 	
 	var options = {
       animation: 'slide',
-      onTransitionEnd: function() {
-      		band2=1;
-      		//alert("band2="+band2); 
+      onTransitionEnd: function() { 
       	  callAjax("getItemDetails","item_id="+item_id+"&merchant_id="+mtid+"&cat_id="+cat_id);
       } 
    };   
    sNavigator.pushPage("itemDisplay.html", options);
 }
-
-
-/***************************************************************
- * SECCION MODIFICADO POR:
- * HENRY J.N. FONTALBA L.
- * OBJETIVOS: MODIFICACION PARA QUE LOS PRODUCTOS MUESTREN LOS
- * PRECIOS DE LOS EXTRAS TANTO EN Bs.S COMO EN $
- ***************************************************************/ 
 
 function displayItem(data)
 {		
@@ -4943,45 +4508,40 @@ function displayItem(data)
 	
 	if ( data.has_price==2){	
 		htm+='<ons-list-header class="list-header trn" data-trn-key="price">Price</ons-list-header>';
-		var x=0, precioBs=data.prices, precio_usd = data.price_usd, i;
-		for(i=0; i < precioBs.length; i++)
-		{
-			if (data.discount>0)
-			{
-				var discount_price = '<price class="discount">'+precioBs[i].pretty_price;
-				discount_price+='<p class="p-small"> | </p>< price class="discount">'+precio_usd[i].pretty_price;
+		var x=0
+		$.each( data.prices, function( key, val ) { 				
+			if (data.discount>0){
+				var discount_price='<price class="discount">'+val.pretty_price;				
 				discount_price+='</price>';
-				if (x==0)
-				{
+				discount_price+='<price>'+val.discounted_price_pretty+'</price>';
+				if (x==0){	
 					htm+=privatePriceRowWithRadio2('price',
-						precioBs[i].price+' | '+precio_usd[i].price+' | '+precioBs[i].size,
-						precioBs[i].size,
-						discount_price,
-						'checked="checked"');	
-				}else
-				{
+					val.price+'|'+val.size ,
+					val.size,
+					discount_price,
+					'checked="checked"');
+				} else {
 					htm+=privatePriceRowWithRadio2('price',
-						precioBs[i].price+' | '+precio_usd[i].price+' | '+precioBs[i].size,
-						precioBs[i].size,
-						discount_price);
-				}
-			}else
-			{
-				if (x==0)
-				{
-					htm+=privatePriceRowWithRadio2('price',
-						precioBs[i].price+' | '+precio_usd[i]+' | '+precioBs[i].size,
-						precioBs[i].size,
-						precioBs[i].pretty_price+' | '+precio_usd[i].formatted_price,
-						'checked="checked"');
-				}else{
-					htm+=privatePriceRowWithRadio2('price',
-						precioBs[i].price+' | '+precio_usd[i].price+' | '+precioBs[i].size,
-						precioBs[i].size,
-						precioBs[i].pretty_price+' | '+precio_usd[i].formatted_price);
-				}
-			}
-		}
+					val.price+'|'+val.size,
+					val.size,
+					discount_price);
+				}	
+			} else {			
+				if (x==0){				
+					htm+=privatePriceRowWithRadio('price',
+					val.price+'|'+val.size ,
+					val.size,
+					val.pretty_price,
+					'checked="checked"');
+				} else {
+					htm+=privatePriceRowWithRadio('price',
+					val.price+'|'+val.size,
+					val.size,
+					val.pretty_price);
+				}		
+			}	
+			x++;
+		});	
 	}
 	
 	if (!empty(data.cooking_ref)){
@@ -5008,31 +4568,24 @@ function displayItem(data)
 			
 			if (!empty(val.sub_item)){
 				$.each( val.sub_item, function( key2, val2 ) { 				
-
-					  	  
-					  if (val.multi_option == "custom"){
-					 	 dump("1-precio en $");
-					  	 dump(val2.pretty_price_usd);					  	 
+					  if (val.multi_option == "custom"){					  	 
 	                     htm+=subItemRowWithCheckbox(
 	                                 val.subcat_id,
 	                                 'sub_item', 
-	                                 val2.sub_item_id+"|"+val2.price +"|"+val2.price_usd+"|"+val2.sub_item_name,
+	                                 val2.sub_item_id+"|"+val2.price +"|"+val2.sub_item_name,
 	                                 val2.sub_item_name,
-	                                 val2.pretty_price +" "+ val2.pretty_price_usd,
+	                                 val2.pretty_price ,
 	                                 val.multi_option_val,
 	                                 val2.item_description
 	                                 );	
 	                                 	                     
 					  } else if ( val.multi_option == "multiple") { 
-					  	 
-					  	  dump("2-precio en $");
-					  	  dump(val2.pretty_price_usd);
 					  	 htm+=subItemRowWithCheckboxQty(
 					  	             val.subcat_id,
 					  	            'sub_item', 
-	                                 val2.sub_item_id+"|"+val2.price +"|"+ val2.pretty_price_usd +"|"+val2.sub_item_name,
+	                                 val2.sub_item_id+"|"+val2.price +"|"+val2.sub_item_name,
 	                                 val2.sub_item_name,
-	                                 val2.pretty_price +" "+ val2.pretty_price_usd);	
+	                                 val2.pretty_price );	
 	                                 
 	                     
 	                     if(show_addon_description==1){
@@ -5042,15 +4595,13 @@ function displayItem(data)
 	                     }
 	                     
 					  } else {    
-					  	  dump("3-precio en $");
-					  	  dump(val2.pretty_price_usd);
                           htm+=subItemRowWithRadio(
                                    val.subcat_id,
                                    "sub_item",
                                    //val2.sub_item_id+"|"+val2.price + "|"+val2.sub_item_name  , 
-                                   val2.sub_item_id+"|"+val2.price + "|"+val2.price_usd +"|"+val2.sub_item_name + "|" + val.two_flavor_position  , 
+                                   val2.sub_item_id+"|"+val2.price + "|"+val2.sub_item_name + "|" + val.two_flavor_position  , 
                                    val2.sub_item_name,
-                                   val2.pretty_price +" "+ val2.pretty_price_usd,
+                                   val2.pretty_price,
                                    false,
                                    val2.item_description
                                    );                                                           
@@ -5069,7 +4620,6 @@ function displayItem(data)
 	translatePage();
 		
 }
-
 
 jQuery(document).ready(function() {	
 	
@@ -6327,7 +5877,6 @@ function applyCartChanges()
 function showDeliveryOptionsPage() {
 	
 	dump('showDeliveryOptionsPage');
-	//alert("hola le ha dado click al boton de inicio");
 	if ( cart.length<1){
 		onsenAlert( getTrans("Your cart is empty",'your_cart_is_empty') );
 		return;
@@ -7061,7 +6610,7 @@ function logout()
 				}
 			}
 		
-			pushUnregister();
+			//pushUnregister();
 	removeStorage("client_token");
 	removeStorage("customer_birthday");
   	removeStorage("customer_id_card");
@@ -8409,7 +7958,7 @@ function autoAddToCart(item_id,price,discount,category_id)
 	  'category_id':category_id  //cart category
 	};
 	dump(cart);
-
+	
 	var cart_value={		  
 	  "item_id":item_id,
 	  "qty":1,
@@ -8424,89 +7973,10 @@ function autoAddToCart(item_id,price,discount,category_id)
 
 	
 	if(saveCartToDb()){
-		callAjax("addToCart", "cart="+ JSON.stringify(cart_value) + "&device_id=" + getStorage("device_id") );
-		//alert("producto sin inventario, band2= ", band2);			
-	} else {
-		band2 = 1;
-		//alert("producto sin inventario, band2= ", band2);	
-	    //sNavigator.popPage({cancelIfRunning: true}); //back button
-	    toastMsg(  getTrans("Item added to cart",'item_added_to_cart') );
-	}
-	showCartNosOrder();
-}
-
-
-function autoAddToCart2(item_id,price,discount,category_id, item_cant)
-{
-		
-    if ( $("#close_store").val()==2 || $("#merchant_open").val()==1 ){
-		onsenAlert( getTrans("This Restaurant Is Closed Now.  Please Check The Opening Times",'restaurant_close') );
-		return;
-	}
-	
-	dump(item_id);
-	dump(price);
-	dump(item_cant);
-
-	idCompare = item_id;
-	item_cant = item_cant - 1;
-	
-	
-	console.log(item_cant);
-	
-	
-    cart[cart.length]={		  
-	  "item_id":item_id,
-	  "qty":1,
-	  "price":price,
-	  "sub_item":[],
-	  "cooking_ref":[],
-	  "ingredients":[],
-	  'order_notes': '',
-	  'discount':discount,
-	  'category_id':category_id  //cart category
-	};
-	dump(cart);
-
-	var cart_value={		  
-	  "item_id":item_id,
-	  "qty":1,
-	  "price":price,
-	  "sub_item":[],
-	  "cooking_ref":[],
-	  "ingredients":[],
-	  'order_notes': '',
-	  'discount':discount,
-	  'category_id':category_id  //cart category
-	};
-	
-
-
-	ArrayItem={
-		"item_id":item_id,
-		"item_cant":item_cant
-	};
-
-cartAux[cartAux.length]=
-	{
-		"item_id":item_id,
-		"item_cant":item_cant,
-		"qty":1
-	}
-	dump(cartAux);
-	
-	if(saveCartToDb()){
-		callAjax("addToCart", "cart="+ JSON.stringify(cart_value) + "&device_id=" + getStorage("device_id") );
-		callAjax("Update_item", "item="+ JSON.stringify(ArrayItem));		
-		
+		callAjax("addToCart", "cart="+ JSON.stringify(cart_value) + "&device_id=" + getStorage("device_id") );		
 	} else {		
 	    //sNavigator.popPage({cancelIfRunning: true}); //back button
-	    callAjax("Update_item", "item="+ JSON.stringify(ArrayItem));
-	    band2=1;
-	    
 	    toastMsg(  getTrans("Item added to cart",'item_added_to_cart') );
-	  
-
 	}
 	showCartNosOrder();
 }
@@ -8643,6 +8113,12 @@ function exitKApp()
 
 function imageLoaded(div_id)
 {	
+	//luis
+	setTimeout(function(){
+		StablishimentTop();
+		console.log("cargando img");
+	}, 1);
+
 	$(div_id).imagesLoaded()
 	  .always( function( instance ) {
 	    //console.log('all images loaded');
@@ -11119,149 +10595,29 @@ function getBrowseMerchant(index)
    });       	
 }
 
-
-/***Funcion modificada por Henry Fontalba ***/
-
 function clearCart()
 {
-	var cantidad=0;
-	var id;
-	var i,j;
-	var aux=[];
-
 	ons.notification.confirm({
-		message: getTrans('Are you sure','are_you_sure') +"?",
-		title: dialog_title_default,
-		buttonLabels: [ getTrans('Yes','yes') ,  getTrans('No','no') ],
-		animation: 'default', // or 'none'
-		primaryButtonIndex: 1,
-		cancelable: true,
-		callback: function(index) {	    
-			if ( index==0){
-					
-				if (saveCartToDb()){
-					  callAjax("clearMyCart", "&device_id="+ encodeURIComponent(getStorage("device_id")) );
-				} else {
-
-					//alert("hola aqui es donde reingreso las cantidades de los productos");
-					/*** Devolviendo los Productos en el Inventario .***/
-					if (band != 0)
-					{
-						if (cart.length > 1)
-			  			{
-			  				/** ORDENO EL CARRO DE COMPRAS AUXILIAR **/
-			  				for(i = 0; i < cartAux.length; i++)
-			  				{
-			  					id = cartAux[i].item_id;
-			  					
-			  					for(j = i; j < cartAux.length; j++)
-			  					{
-			  						
-			  						if(cartAux[i].item_id <= cartAux[j].item_id)
-			  						{
-			  							aux = cartAux[i];
-			  							cartAux[i]=cartAux[j];
-			  							cartAux[j]=aux;
-			  								  							
-			  						}
-
-			  					}
-
-			  				}
-
-			  				//dump(cartAux);
-			  				id = cartAux[0].item_id;
-			  				cantidad = 1;
-
-			  				/**RECORRO EL CARRO DE COMPRAS ORDENADOS Y SUMO LAS CANTIDADES POR ID DE PRODUCTO **/
-			  				for(i = 1; i < cartAux.length; i++)
-			  				{
-			  					bandera = 0;
-			  					if (id == cartAux[i].item_id) 
-			  					{
-			  						cantidad = cantidad + 1;
-			  						
-			  						if (i == (cartAux.length - 1))
-			  						{
-			  							bandera = 1;
-			  						}
-
-			  					}else{
-			  						
-			  						itemAarray[itemAarray.length]={
-			  							"item_id":id,
-			  							"item_cant":cantidad
-			  						};
-			  						
-			  						id = cartAux[i].item_id;
-			  						cantidad = 1;
-
-			  						if (i == (cartAux.length - 1))
-			  						{
-			  							itemAarray[itemAarray.length]={
-				  							"item_id":id,
-				  							"item_cant":cantidad
-			  							};	
-			  						}
-			  					}
-
-			  				}
-			  				/** Guardando en caso de que se compre solo un tipo de producto **/
-		  					if (bandera)
-		  					{
-		  						bandera = 0;
-
-		  						//alert("item_id="+id);
-		  						itemAarray[itemAarray.length]={
-		  							"item_id":id,
-		  							"item_cant":cantidad
-		  						};
-		  					}
-			  				
-
-			  				dump(itemAarray);
-			  				
-					  		/// aqui llamo al ajax para que actualize las cantidades de los productos ///
-
-					  		//dump(JSON.stringify(itemAarray));
-					  		callAjax("CancelOrderCart", "itemCancel="+ JSON.stringify(itemAarray));
-					  		
-					  		itemAarray=[];
-					  		cart = [];
-							cartAux=[];
-							
-			  			}else{
-
-			  				dump(cart);
-			  				cart.forEach(function(val, idex){
-			  					itemAarray[itemAarray.length]={
-					  				"item_id":val.item_id,
-					  				"item_cant":val.qty
-					  			};
-					  		});
-					  		
-			  				/// aqui llamo al ajax para que actualize las cantidades de los productos ///
-			  				
-			  				callAjax("CancelOrderCart", "itemCancel="+ JSON.stringify(itemAarray));
-					  		
-
-					  		itemAarray=[];
-					  		cart = [];
-							cartAux=[];
-			  			}
-					}else{
-						itemAarray=[];
-				  		cart = [];
-						cartAux=[];
-					}
-
-					//cart=[];		       
-					// sNavigator.popPage({cancelIfRunning: true}); //back button
-					showCartNosOrder();
-					goBackSearchByAddress();
-				}
-			}
-		}
+	  message: getTrans('Are you sure','are_you_sure') +"?",
+	  title: dialog_title_default,
+	  buttonLabels: [ getTrans('Yes','yes') ,  getTrans('No','no') ],
+	  animation: 'default', // or 'none'
+	  primaryButtonIndex: 1,
+	  cancelable: true,
+	  callback: function(index) {	    
+	    if ( index==0){
+	     	
+	       if (saveCartToDb()){
+	       	  callAjax("clearMyCart", "&device_id="+ encodeURIComponent(getStorage("device_id")) );
+	       } else {
+	       	   //showCart();
+		       cart=[];		       
+		       // sNavigator.popPage({cancelIfRunning: true}); //back button
+		       showCartNosOrder();
+		       goBackSearchByAddress();
+	       }
+	    }
+	  }
 	});	
 }
 
@@ -11711,128 +11067,9 @@ function cancelCartOrder()
 		  animation: 'default', // or 'none'
 		  primaryButtonIndex: 1,
 		  cancelable: true,
-
 		  callback: function(index) {
-		  		
-		  		dump(band);
-		  		var cantidad=0;
-		  		var id;
-		  		var i,j;
-		  		var aux=[];
-		  		
-		  		if (band!=0)
-		  		{
-		  			if (cart.length > 1)
-		  			{
-		  				/** ORDENO EL CARRO DE COMPRAS AUXILIAR **/
-		  				for(i = 0; i < cartAux.length; i++)
-		  				{
-		  					id = cartAux[i].item_id;
-		  					
-		  					for(j = i; j < cartAux.length; j++)
-		  					{
-		  						
-		  						if(cartAux[i].item_id <= cartAux[j].item_id)
-		  						{
-		  							aux = cartAux[i];
-		  							cartAux[i]=cartAux[j];
-		  							cartAux[j]=aux;
-		  								  							
-		  						}
-
-		  					}
-
-		  				}
-
-		  				//dump(cartAux);
-		  				id = cartAux[0].item_id;
-		  				cantidad = 1;
-
-		  				/**RECORRO EL CARRO DE COMPRAS ORDENADOS Y SUMO LAS CANTIDADES POR ID DE PRODUCTO **/
-		  				for(i = 1; i < cartAux.length; i++)
-		  				{
-		  					bandera = 0;
-		  					if (id == cartAux[i].item_id) 
-		  					{
-		  						cantidad = cantidad + 1;
-		  						
-		  						if (i == (cartAux.length - 1))
-		  						{
-		  							bandera = 1;
-		  						}
-
-		  					}else{
-		  						
-		  						itemAarray[itemAarray.length]={
-		  							"item_id":id,
-		  							"item_cant":cantidad
-		  						};
-		  						
-		  						id = cartAux[i].item_id;
-		  						cantidad = 1;
-
-		  						if (i == (cartAux.length - 1))
-		  						{
-		  							itemAarray[itemAarray.length]={
-			  							"item_id":id,
-			  							"item_cant":cantidad
-		  							};	
-		  						}
-		  					}
-
-		  				}
-		  				/** Guardando en caso de que se compre solo un tipo de producto **/
-	  					if (bandera)
-	  					{
-	  						bandera = 0;
-
-	  						//alert("item_id="+id);
-	  						itemAarray[itemAarray.length]={
-	  							"item_id":id,
-	  							"item_cant":cantidad
-	  						};
-	  					}
-		  				
-
-		  				dump(itemAarray);
-		  				
-				  		/// aqui llamo al ajax para que actualize las cantidades de los productos ///
-
-				  		//dump(JSON.stringify(itemAarray));
-				  		callAjax("CancelOrderCart", "itemCancel="+ JSON.stringify(itemAarray));
-				  		
-				  		itemAarray=[];
-				  		cart = [];
-						cartAux=[];
-						
-		  			}else{
-
-		  				
-		  				dump(cart);
-		  				cart.forEach(function(val, idex){
-		  					itemAarray[itemAarray.length]={
-				  				"item_id":val.item_id,
-				  				"item_cant":val.qty
-				  			};
-				  		});
-				  		
-		  				/// aqui llamo al ajax para que actualize las cantidades de los productos ///
-		  				
-		  				callAjax("CancelOrderCart", "itemCancel="+ JSON.stringify(itemAarray));
-				  		
-
-				  		itemAarray=[];
-				  		cart = [];
-						cartAux=[];
-		  			}
-		  		}else{
-		  			
-		  			itemAarray=[];
-			  		cart = [];
-					cartAux=[];
-		  		}
-		  		
-		  	   showCartNosOrder();	  	       
+		  		cart = [];
+		  		showCartNosOrder();	  	       
 		  	   if (index==0){	  	   	      	   	  
 					sNavigator.popPage({cancelIfRunning: true}); 
 		  	   }
@@ -11840,151 +11077,6 @@ function cancelCartOrder()
 		});
   } else {
   	  sNavigator.popPage({cancelIfRunning: true}); 
-  }
-}
-
-
-/***Funcion Cancelar Pedido: se encarga de limpiar el carro de compras cuando le den al boton de inicio ***/
-
-function cancelarPedido()
-{
-	 if ( cart.length>0 ){		
-		ons.notification.confirm({
-		  message: getTrans('Cancel current order?','cancel_order') ,	  
-		  title: dialog_title_default ,
-		  buttonLabels: [ getTrans('Yes','yes') ,  getTrans('No','no') ],
-		  animation: 'default', // or 'none'
-		  primaryButtonIndex: 1,
-		  cancelable: true,
-
-		  callback: function(index) {
-		  		
-		  		dump(band);
-		  		var cantidad=0;
-		  		var id;
-		  		var i,j;
-		  		var aux=[];
-		  		
-		  		if (band!=0)
-		  		{
-		  			if (cart.length > 1)
-		  			{
-		  				/** ORDENO EL CARRO DE COMPRAS AUXILIAR **/
-		  				for(i = 0; i < cartAux.length; i++)
-		  				{
-		  					id = cartAux[i].item_id;
-		  					
-		  					for(j = i; j < cartAux.length; j++)
-		  					{
-		  						
-		  						if(cartAux[i].item_id <= cartAux[j].item_id)
-		  						{
-		  							aux = cartAux[i];
-		  							cartAux[i]=cartAux[j];
-		  							cartAux[j]=aux;
-		  								  							
-		  						}
-
-		  					}
-
-		  				}
-
-		  				//dump(cartAux);
-		  				id = cartAux[0].item_id;
-		  				cantidad = 1;
-
-		  				/**RECORRO EL CARRO DE COMPRAS ORDENADOS Y SUMO LAS CANTIDADES POR ID DE PRODUCTO **/
-		  				for(i = 1; i < cartAux.length; i++)
-		  				{
-		  					bandera = 0;
-		  					if (id == cartAux[i].item_id) 
-		  					{
-		  						cantidad = cantidad + 1;
-		  						
-		  						if (i == (cartAux.length - 1))
-		  						{
-		  							bandera = 1;
-		  						}
-
-		  					}else{
-		  						
-		  						itemAarray[itemAarray.length]={
-		  							"item_id":id,
-		  							"item_cant":cantidad
-		  						};
-		  						
-		  						id = cartAux[i].item_id;
-		  						cantidad = 1;
-
-		  						if (i == (cartAux.length - 1))
-		  						{
-		  							itemAarray[itemAarray.length]={
-			  							"item_id":id,
-			  							"item_cant":cantidad
-		  							};	
-		  						}
-		  					}
-
-		  				}
-		  				/** Guardando en caso de que se compre solo un tipo de producto **/
-	  					if (bandera)
-	  					{
-	  						bandera = 0;
-
-	  						//alert("item_id="+id);
-	  						itemAarray[itemAarray.length]={
-	  							"item_id":id,
-	  							"item_cant":cantidad
-	  						};
-	  					}
-		  				
-
-		  				dump(itemAarray);
-		  				
-				  		/// aqui llamo al ajax para que actualize las cantidades de los productos ///
-
-				  		//dump(JSON.stringify(itemAarray));
-				  		callAjax("CancelOrderCart", "itemCancel="+ JSON.stringify(itemAarray));
-				  		
-				  		itemAarray=[];
-				  		cart = [];
-						cartAux=[];
-						
-		  			}else{
-
-		  				
-		  				dump(cart);
-		  				cart.forEach(function(val, idex){
-		  					itemAarray[itemAarray.length]={
-				  				"item_id":val.item_id,
-				  				"item_cant":val.qty
-				  			};
-				  		});
-				  		
-		  				/// aqui llamo al ajax para que actualize las cantidades de los productos ///
-		  				
-		  				callAjax("CancelOrderCart", "itemCancel="+ JSON.stringify(itemAarray));
-				  		
-
-				  		itemAarray=[];
-				  		cart = [];
-						cartAux=[];
-		  			}
-		  		}else{
-		  			
-		  			itemAarray=[];
-			  		cart = [];
-					cartAux=[];
-		  		}
-		  		
-		  	   showCartNosOrder();	  	       
-		  	   if (index==0){	  	   	      	   	  
-					sNavigator.popPage({cancelIfRunning: true}); 
-		  	   }
-		  }
-		});
-	} else {
-  	  sNavigator.popPage({cancelIfRunning: false}); 
   }
 }
 
@@ -12779,7 +11871,6 @@ requestCancelOrder = function(){
 	  cancelable: true,
 	  callback: function(index) {
 	      if(index<=0){
-	      	//alert("hola aqui es donde reingreso las cantidades de los productos");
 	      	 callAjax("requestCancelOrder", "order_id=" +  order_id );	
 	      }
 	  }
@@ -13915,7 +13006,33 @@ var showServices = function(){
     });
   };
 
-
+/* MODAL TOP 5 */
+  /*ABRIR*/
+function showTop(){
+	var btn1 = document.getElementById('modalTop');/*BOTON PRA ABRIR EL MODAL*/
+	var btn2 = document.getElementById('salirModalTop');/*BOTON PARA SALIR DEL MODAL*/
+	var inputB = document.getElementById('exampleModal');/*MODAL*/
+	/*var btnS = document.getElementById('btnSalir');*/
+	btn1.style.display = 'block';
+	setTimeout(function(){
+		var modalU = $('#exampleModal');
+		modalU.show();	
+	},300);
+	/*btn1.style.display = 'none';
+	inputB.style.visibility = 'visible';
+	btnS.style.display = 'block';*/
+}
+   /*SALIR*/
+function hideTop(){
+	var btn1 = document.getElementById('modalTop');/*BOTON PRA ABRIR EL MODAL*/
+	var btn2 = document.getElementById('salirModalTop');/*BOTON PARA SALIR DEL MODAL*/
+	var inputB = document.getElementById('exampleModal');/*MODAL*/
+	/*var btnS = document.getElementById('btnSalir');*/
+	inputB.style.display = 'none'; //OCULTA AL HACER CLICK
+	/*btn1.style.display = 'none';
+	inputB.style.visibility = 'visible';
+	btnS.style.display = 'block';*/
+}
   /* MODAL BUSCAR*/
 function modalTestShow(){
 	var btn1 = document.getElementById('btnBuscarM');
@@ -13962,6 +13079,16 @@ function modalTestHide3(){
 	var modal = $('#mdRegist');
 	modal.hide();
 }
+function modalTestShow4(){
+	setTimeout(function(){
+		var modalR = $('#mdLogin');
+		modalR.show();	
+	},300);
+}
+function modalTestHide4(){
+	var modal = $('#mdLogin');
+	modal.hide();
+}
 function setServicios()
 {
 	dump("setHome");
@@ -13970,20 +13097,36 @@ function setServicios()
 	      animation: 'slide',
 	      callback:setHomeCallback
 	   };	   	   	   
-	 menu.setMainPage('services.html',options);
+	 menu.setMainPage('servicios.html',options);
 	 $('#menu-lower').hide();
 }
 
 function newLogin(){
 	login();
 	if(isLogin()){
-		modalTestShow2();
+		setServicios();
+		modalTestHide4();
+		modalTestHide2();
 		return true;
 	}else{
 		modalTestHide2();
 		return false;
 	}
 }
+//ilbert
+//almacenando el div y el boton en unas variables
+var contBanner = document.getElementById('hola2');
+
+//funcion para cualquier clic en el documento
+document.addEventListener("click", function(e){
+	console.log('clic');
+	//obtiendo informacion del DOM para  
+	var clic = e.target;
+	console.log(clic);
+	if(contBanner.style.display == "block" && clic != contBanner){
+		contBanner.style.display = "none";
+	}
+}, false);
 
 function alertColitaxi(){
 	ons.notification.alert({
@@ -13997,4 +13140,97 @@ function getRandomNumberInt(){
 	return Math.floor(Math.random() * (201 - 1)) + 1;
 }
 
+/*FUNCION DE CARGA DE IMAGENES LUIS*/
 
+function StablishimentTop(index)
+{
+
+var params='';
+action="loadStablishimentTop";
+
+params+="&lang_id="+getStorage("default_lang");
+params+="&lang="+getStorage("default_lang");
+if(!empty(krms_config.APIHasKey)){
+params+="&api_key="+krms_config.APIHasKey;
+}
+
+dump(ajax_url+"/"+action+"?"+params);
+
+ajax_request_img = $.ajax({
+url: ajax_url+"/"+action,
+data: params,
+type: 'post',                  
+async: true,
+dataType: 'jsonp',
+timeout: 8000,
+crossDomain: true,
+beforeSend: function() {
+},
+complete: function(data) {
+},
+success: function (data) {
+dump(data);
+if (data.code==1){
+var url = 'http://asiderapido.cloud';
+var dataArray = (data.details);
+           var i = 0;
+img_1 = "";
+img_2 = "";
+var width = "";
+var cant_img_2 = "";
+var cant_img_1 = "";
+var sum_img_2 = 0;
+
+// width = dataArray.dat.length;
+img_1 = "";
+           for (i in dataArray.dat)
+           {
+
+            if (dataArray.dat[i].img1.length!="") {
+            img_1 += '<li><img src="'+url+dataArray.dat[i].img1+'" onclick="'+dataArray.dat[i].url_prod+'"/></li>';
+            }
+           
+            if (dataArray.dat[i].img2.length!="") {
+            img_2 += '<li><img src="'+url+dataArray.dat[i].img2+'" onclick="'+dataArray.dat[i].url_prod+'"/></li>';
+            sum_img_2 = sum_img_2 + 1;
+            }
+
+            cant_img_2 = cant_img_2 + dataArray.dat[i].img2.length;
+            cant_img_1 = cant_img_1 + dataArray.dat[i].img1.length;
+
+
+
+           }
+
+           // img_1 +="</ul>" ;
+
+          if (cant_img_1!=0) {
+
+$("#modal-lateral ul").html(img_1);
+}else{
+$("#modal-lateral").remove();
+}
+
+if (cant_img_2!=0) {
+$("#slider").css('width', sum_img_2+'00%');
+$("#slider").html(img_2);
+$("#slider-publicidad").addClass('slider-publicidad').show();
+
+}else{
+// $("#exampleModal").remove();
+$("#exampleModal").css('display', 'none');
+
+
+}
+
+
+
+}
+
+},
+error: function (request,error) {        
+
+}
+
+   });      
+}
